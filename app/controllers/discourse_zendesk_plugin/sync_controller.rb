@@ -66,24 +66,26 @@ module DiscourseZendeskPlugin
       end
     end
 
-    # Helper method to format ticket data with image preview and link
     def format_ticket_data(ticket_data)
-      ticket_data = clean_ticket_data(ticket_data)
-      if ticket_data.include?('Attachment(s):')
-        attachment_data = ticket_data.match(/Attachment\(s\):\n(.+?) - (https?:\/\/\S+)/)
-    
-        if attachment_data
-          file_name = attachment_data[1]
-          attachment_url = attachment_data[2]
-          if file_name =~ /\.(png|jpe?g|gif)$/i
-            formatted_data = "![#{file_name}](#{attachment_url})\n[#{file_name}](#{attachment_url})"
-          else
-            formatted_data = "[#{file_name}](#{attachment_url})"
+      cleaned_ticket_data = clean_ticket_data(ticket_data)
+      if cleaned_ticket_data.include?('Attachment(s):')
+        attachment_data = cleaned_ticket_data.scan(/(.+?) - (https?:\/\/\S+)/)
+        if attachment_data.any?
+          formatted_attachments = attachment_data.map do |file_name, attachment_url|
+            if file_name =~ /\.(png|jpe?g|gif)$/i
+              "![#{file_name}](#{attachment_url})\n[#{file_name}](#{attachment_url})"
+            else
+              "[#{file_name}](#{attachment_url})"
+            end
           end
+          # Append the formatted attachments to the cleaned ticket_data
+          formatted_data = "#{cleaned_ticket_data}\n\n" + formatted_attachments.join("\n\n")
           return formatted_data
         end
       end
-      ticket_data
+    
+      # Return cleaned ticket data if no attachments
+      cleaned_ticket_data
     end
 
     def clean_ticket_data(ticket_data)
