@@ -67,19 +67,28 @@ module DiscourseZendeskPlugin
     end
 
     def format_ticket_data(ticket_data)
+      # Clean the ticket_data to remove unwanted lines
       cleaned_ticket_data = clean_ticket_data(ticket_data)
+    
+      # Check if there are attachments to process
       if cleaned_ticket_data.include?('Attachment(s):')
+        # Extract all attachments using regex to find multiple files
         attachment_data = cleaned_ticket_data.scan(/(.+?) - (https?:\/\/\S+)/)
+    
         if attachment_data.any?
+          # Process each attachment
           formatted_attachments = attachment_data.map do |file_name, attachment_url|
             if file_name =~ /\.(png|jpe?g|gif)$/i
-              "![#{file_name}](#{attachment_url})\n[#{file_name}](#{attachment_url})"
+              # For image attachments, display only the image
+              "![#{file_name}](#{attachment_url})"
             else
+              # For non-image attachments (PDF, DOC, etc.), display just the name with a clickable link
               "[#{file_name}](#{attachment_url})"
             end
           end
+    
           # Append the formatted attachments to the cleaned ticket_data
-          formatted_data = "#{cleaned_ticket_data}\n\n" + formatted_attachments.join("\n\n")
+          formatted_data = "#{cleaned_ticket_data}\n\n" + formatted_attachments.join("\n")
           return formatted_data
         end
       end
@@ -87,8 +96,10 @@ module DiscourseZendeskPlugin
       # Return cleaned ticket data if no attachments
       cleaned_ticket_data
     end
-
+    
+    # Helper method to clean ticket_data
     def clean_ticket_data(ticket_data)
+      # Remove unnecessary lines (like separators and names/times) and trim
       ticket_data.gsub(/^-+|^\w+ \w+, \w+ \d+, \d{4}, \d{2}:\d{2}/, '').strip
     end
     
