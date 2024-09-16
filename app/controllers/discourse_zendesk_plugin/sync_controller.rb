@@ -68,29 +68,26 @@ module DiscourseZendeskPlugin
 
     # Helper method to format ticket data with image preview and link
     def format_ticket_data(ticket_data)
-      # Regex to extract attachment information
+      ticket_data = clean_ticket_data(ticket_data)
       if ticket_data.include?('Attachment(s):')
         attachment_data = ticket_data.match(/Attachment\(s\):\n(.+?) - (https?:\/\/\S+)/)
     
         if attachment_data
           file_name = attachment_data[1]
           attachment_url = attachment_data[2]
-    
-          # Check if the file is an image (you can extend this for more image types)
           if file_name =~ /\.(png|jpe?g|gif)$/i
-            # Show the image with a link attached
             formatted_data = "![#{file_name}](#{attachment_url})\n[#{file_name}](#{attachment_url})"
           else
-            # For other file types (PDF, Docs), just show a link
             formatted_data = "[#{file_name}](#{attachment_url})"
           end
-          
           return formatted_data
         end
       end
-    
-      # Return raw ticket_data if no attachment found or doesn't match the regex
       ticket_data
+    end
+
+    def clean_ticket_data(ticket_data)
+      ticket_data.gsub(/^-+|^\w+ \w+, \w+ \d+, \d{4}, \d{2}:\d{2}/, '').strip
     end
     
   end
