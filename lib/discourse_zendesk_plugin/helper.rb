@@ -11,6 +11,7 @@ module DiscourseZendeskPlugin
     end
 
     def self.autogeneration_category?(category_id)
+      return true if category_id.nil?
       return false if category_id.blank?
 
       if SiteSetting.zendesk_autogenerate_all_categories?
