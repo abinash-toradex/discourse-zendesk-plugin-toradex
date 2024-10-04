@@ -69,11 +69,14 @@ module DiscourseZendeskPlugin
     def format_ticket_data(ticket_data)
       cleaned_ticket_data = clean_ticket_data(ticket_data)
       if cleaned_ticket_data.include?('Attachment(s):')
+        # Extract attachment names and URLs
         attachment_data = cleaned_ticket_data.scan(/(.+?) - (https?:\/\/\S+)/)
         if attachment_data.any?
-          formatted_attachments = attachment_data.map do |_file_name, attachment_url|
-            attachment_url
+          # Format the attachment links as HTML anchor tags
+          formatted_attachments = attachment_data.map do |file_name, attachment_url|
+            "<a href='#{attachment_url}'>#{file_name}</a>"
           end
+          # Embed the formatted attachment links back into the ticket data
           formatted_data = "#{cleaned_ticket_data}\n\n" + formatted_attachments.join("\n")
           return formatted_data
         end
@@ -82,8 +85,10 @@ module DiscourseZendeskPlugin
     end
     
     def clean_ticket_data(ticket_data)
+      # Remove unnecessary parts from the ticket data
       ticket_data.gsub(/^-+|^\w+ \w+, \w+ \d+, \d{4}, \d{2}:\d{2}/, '').strip
     end
+    
     
   end
 end
