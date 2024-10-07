@@ -68,19 +68,38 @@ module DiscourseZendeskPlugin
 
     def format_ticket_data(ticket_data)
       cleaned_ticket_data = clean_ticket_data(ticket_data)
+    
       if cleaned_ticket_data.include?('Attachment(s):')
-        # Extract attachment names and URLs
-        attachment_data = cleaned_ticket_data.scan(/(.+?) - (https?:\/\/\S+)/)
+        # Define common file extensions
+        file_extensions = ['.jpg', '.doc', '.pdf', '.png', '.webp', 
+                   '.xls', '.xlsx', '.xlsm', '.csv',  # Excel files
+                   '.txt', '.md', '.rtf',  # Text files
+                   '.docx',  # Word document
+                   '.gif',  # Image files
+                   '.zip', '.rar', '.7z',  # Compressed files
+                   '.ppt', '.pptx',  # PowerPoint presentations
+                   '.odt', '.ods']  # OpenDocument files
+ # Add more extensions as needed
+        file_extension_regex = /(#{file_extensions.join('|')})/ # Regex to split by file extension
+    
+        # Split by file extension and ensure proper spacing
+        cleaned_ticket_data = cleaned_ticket_data.gsub(file_extension_regex, '\1\n')
+    
+        # Correct regex for extracting attachment names and URLs
+        attachment_data = cleaned_ticket_data.scan(/([\w\s\(\)\.-]+?)\s+-\s+(https?:\/\/\S+\?name=([\w\s\(\)\.-]+))/)
+    
         if attachment_data.any?
           # Format the attachment links as HTML anchor tags
-          formatted_attachments = attachment_data.map do |file_name, attachment_url|
-            "<a href='#{attachment_url}'>#{file_name}</a>"
+          formatted_attachments = attachment_data.map do |_, attachment_url, file_name|
+            # Generate the clickable file link
+            "<a href='#{attachment_url}' target='_blank'>#{file_name.strip}</a>"
           end
-          # Embed the formatted attachment links back into the ticket data
-          formatted_data = "#{cleaned_ticket_data}\n\n" + formatted_attachments.join("\n")
-          return formatted_data
+          
+          # Replace attachment list in the cleaned ticket data
+          cleaned_ticket_data = cleaned_ticket_data.gsub(/Attachment\(s\):\s+.+/, "Attachment(s):\n" + formatted_attachments.join("\n"))
         end
       end
+    
       cleaned_ticket_data
     end
     
