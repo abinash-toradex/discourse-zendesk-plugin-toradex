@@ -95,6 +95,7 @@ module DiscourseZendeskPlugin
 
     def fetch_submitter(user)
       result = zendesk_client.users.search(query: user.email)
+      return result.first if result.present? && result.size == 1
       custom_fields = UserCustomField.where(user_id: user.id).pluck(:name, :value).to_h
       user_fields = {
         job_function: custom_fields['user_field_3'] || "NA",
