@@ -98,6 +98,7 @@ module DiscourseZendeskPlugin
       return result.first if result.present? && result.size == 1
       custom_fields = UserCustomField.where(user_id: user.id).pluck(:name, :value).to_h
       organization_name = custom_fields['user_field_1'] || "NA"
+      organization = fetch_organization(organization_name)
       user_fields = {
         job_function: custom_fields['user_field_3'] || "NA",
         country: custom_fields['user_field_2'] || "NA",
@@ -109,9 +110,30 @@ module DiscourseZendeskPlugin
         email: user.email,
         verified: true,
         role: "end-user",
-        organization: { name: organization_name },
+        organization_id: organization.id,
         user_fields: user_fields
       )
+    end
+
+    def fetch_organization(name)
+      organizations = zendesk_client.organizations.search(name: name).to_a
+      if organizations.any?
+        matched_organization = organizations.find { |org| org["name"].casecmp(name).zero? }
+        if matched_organization
+          Rails.logger.info("Found matching organization: #{matched_organization["name"]}, ID: #{matched_organization["id"]}")
+          return matched_organization
+        end
+      end
+      Rails.logger.info("No matching organization found. Creating new organization: #{name}")
+      create_organization(name)
+    end
+
+    def create_organization(name)
+      organization = zendesk_client.organizations.create(
+        name: name
+      )
+      Rails.logger.info("Created organization: #{organization.name}, ID: #{organization.id}")
+      organization
     end
 
     def get_post_content(post)
