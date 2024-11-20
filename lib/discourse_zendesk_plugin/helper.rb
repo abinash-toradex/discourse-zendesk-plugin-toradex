@@ -33,6 +33,7 @@ module DiscourseZendeskPlugin
             requester_id: zendesk_user_id,
             submitter_id: zendesk_user_id,
             priority: "normal",
+            brand_id:14429815325596,
             tags: SiteSetting.zendesk_tags.split("|"),
             external_id: post.topic.id,
             custom_fields: [
@@ -103,7 +104,7 @@ module DiscourseZendeskPlugin
         job_function: custom_fields['user_field_3'] || "NA",
         country: custom_fields['user_field_2'] || "NA",
         title: user.name || "NA",
-        department: custom_fields['user_field_1'] || "NA"
+        # department: custom_fields['user_field_1'] || "NA"
       }
       zendesk_client.users.create(
         name: (user.name.present? ? user.name : user.username),
