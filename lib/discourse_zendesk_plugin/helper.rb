@@ -33,8 +33,8 @@ module DiscourseZendeskPlugin
             requester_id: zendesk_user_id,
             submitter_id: zendesk_user_id,
             priority: "normal",
-            # brand_id:14429815325596 (Sand Box), 
-            brand_id:13976723649820, 
+            brand_id:14429815325596, #SANDBOX 
+            # brand_id:13976723649820, 
             tags: SiteSetting.zendesk_tags.split("|"),
             external_id: post.topic.id,
             custom_fields: [
